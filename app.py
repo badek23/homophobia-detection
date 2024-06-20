@@ -1,9 +1,9 @@
 import streamlit as st
 
-# Sidebar
+from datasets import load_dataset
 
-# Main content
 st.title('Homophobia Detector')
+
 st.markdown(
     """
     This app will detect whether Tweets are homophobic. As hate speech spreads, our aim is to be able to more reliably detect
