@@ -54,7 +54,7 @@ cons==0.4.6
 contextlib2==21.6.0
 contourpy==1.2.1
 cryptography==42.0.8
-cuda-python==12.2.1
+cuda-python==12.4.0
 cudf-cu12==24.4.1
 cufflinks==0.17.3
 cupy-cuda12x==12.2.0
@@ -83,7 +83,6 @@ easydict==1.13
 ecos==2.0.13
 editdistance==0.6.2
 eerepr==0.0.4
-en-core-web-sm==3.7.1
 entrypoints==0.4
 et-xmlfile==1.1.0
 etils==1.7.0
@@ -408,6 +407,7 @@ sqlparse==0.5.0
 srsly==2.4.8
 stanio==0.5.0
 statsmodels==0.14.2
+streamlit
 StrEnum==0.4.15
 sympy==1.12.1
 tables==3.8.0
@@ -440,7 +440,7 @@ tokenizers==0.19.1
 toml==0.10.2
 tomli==2.0.1
 toolz==0.12.1
-torch==2.3.0
+torch==2.3.1
 torchaudio==2.3.0
 torchsummary==1.5.1
 torchtext==0.18.0
