@@ -30,7 +30,12 @@ def predict(input_text):
     logits = outputs.logits
     predicted_class = torch.argmax(logits, dim=1).item()
 
-    return logits, predicted_class  # Return logits along with predicted class
+    # Get likelihood of prediction
+    classifier = pipeline("text-classification", model=model, tokenizer=tokenizer)
+    likelihood = classifier(input_text)
+    score = likelihood[0]["score"]
+
+    return logits, predicted_class, score  # Return logits along with predicted class, and % likelihood of prediction
 
 # Streamlit app
 def main():
@@ -43,12 +48,8 @@ def main():
         user_input = st.text_area('Paste the Tweet here to analyze:')
         button = st.button("Analyze")
 
-        classifier = pipeline("text-classification", model=model, tokenizer=tokenizer)
-
         if user_input and button:
-            logits, prediction = predict(user_input)
-            likelihood = classifier(user_input)
-            score = likelihood[0]["score"]
+            logits, prediction, score = predict(user_input)
             st.write(f"It's giving... **{d[prediction]}** There is a {round(score*100,2)}% change that that statement was {d[prediction]}")
 
             if d[prediction] == "not homophobic.":
