@@ -1,46 +1,49 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, Trainer
+import numpy as np
+from transformers import RobertaTokenizer, RobertaForSequenceClassification
 import torch
-#from datasets import load_dataset
 
-st.title('Homophobia Detector')
+@st.cache_resource
+def get_model():
+    tokenizer = RobertaTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment-latest")
+    model = RobertaForSequenceClassification.from_pretrained("gvbl92/HomphobiaDetection-roBERTa")
+    return tokenizer, model
 
-st.markdown(
-    """
-    This app will detect whether Tweets are homophobic. As hate speech spreads, our aim is to be able to more reliably detect
-     when it is present on social media. To test the Tweet, input it into the text box below.
-    """
-)
+tokenizer, model = get_model()
 
+# Define labels dictionary
+d = {
+    1: 'Homophobic',
+    0: 'Not Homophobic'
+}
 
-# MODEL
+# Function to predict using the model
+def predict(input_text):
+    # Tokenize input text
+    inputs = tokenizer(input_text, padding=True, truncation=True, max_length=512, return_tensors='pt')
 
-# Tokenizer
-tokenizer = AutoTokenizer.from_pretrained("GroNLP/hateBERT")
-
-# Model
-model = AutoModelForSequenceClassification.from_pretrained("my_model_hate")
-model.eval()
-
-# Function to predict homophobic sentiment
-def predict_phrase(phrase):
-    inputs = tokenizer(phrase, return_tensors="pt", truncation=True, padding=True, max_length=512)
-
+    # Perform forward pass
     with torch.no_grad():
         outputs = model(**inputs)
 
+    # Get predicted class
     logits = outputs.logits
-    predicted_class_id = torch.argmax(logits, dim=1).item()
+    predicted_class = torch.argmax(logits, dim=1).item()
 
-    return predicted_class_id
+    return logits, predicted_class  # Return logits along with predicted class
 
+# Streamlit app
+def main():
+    st.title("Homophobia Detector")
 
-# User-input Tweet
-Tweet = st.text_input("Copy the Tweet here:")
+    # Input text area and button
+    user_input = st.text_area('Enter Text to Analyze')
+    button = st.button("Analyze")
 
-predicted_label = predict_phrase(Tweet)
+    if user_input and button:
+        logits, prediction = predict(user_input)
+        st.write("Logits: ", logits)
+        st.write("It's giving... ", d[prediction])
 
-st.markdown(predicted_label)
-
-
-
+if __name__ == "__main__":
+    main()
