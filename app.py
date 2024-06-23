@@ -1,43 +1,59 @@
 import streamlit as st
 import numpy as np
-from transformers import BertTokenizer, BertForSequenceClassification
+from transformers import RobertaTokenizer, RobertaForSequenceClassification
 import torch
 
-# Sidebar
-
-# Main content
-st.title('Homophobia Detector')
-st.markdown(
-    """
-    This app will detect whether Tweets are homophobic. As hate speech spreads, our aim is to be able to more reliably detect
-     when it is present on social media. To test the Tweet, input it into the text box below.
-    """
-)
-
-Tweet = st.text_input("Copy the Tweet here:")
-
-@st.cache(allow_output_mutation=True)
+# Load tokenizer and model
+@st.cache_resource
 def get_model():
-    tokenizer = BertTokenizer.from_pretrained('JoshMcGiff/HomophobiaDetectionTwitterX') # Pre-trained model
-    model = BertForSequenceClassification.from_pretrained("pnichite/YTFineTuneBert") #Fine-tuned model -> We should consider pushing to HuggingFace
-    return tokenizer,model
+    tokenizer = RobertaTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment-latest")
+    model = RobertaForSequenceClassification.from_pretrained("gvbl92/HomphobiaDetection-roBERTa")
+    return tokenizer, model
 
+tokenizer, model = get_model()
 
-tokenizer,model = get_model()
-
-user_input = st.text_area('Enter Text to Analyze')
-button = st.button("Analyze")
-
+# Define labels dictionary
 d = {
-    
-  1:'Toxic',
-  0:'Non Toxic'
+    1: 'Homophobic',
+    0: 'Not Homophobic'
 }
 
-if user_input and button :
-    test_sample = tokenizer([user_input], padding=True, truncation=True, max_length=512,return_tensors='pt')
-    # test_sample
-    output = model(**test_sample)
-    st.write("Logits: ",output.logits)
-    y_pred = np.argmax(output.logits.detach().numpy(),axis=1)
-    st.write("Prediction: ",d[y_pred[0]])
+# Function to predict using the model
+def predict(input_text):
+    # Tokenize input text
+    inputs = tokenizer(input_text, padding=True, truncation=True, max_length=512, return_tensors='pt')
+
+    # Perform forward pass
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Get logits from the model output
+    logits = outputs.logits[0]  # Assuming batch size is 1
+
+    # Softmax operation is already applied during model training for this model
+    probabilities = torch.softmax(logits, dim=0)
+    
+    # Get predicted class
+    predicted_class = torch.argmax(logits, dim=0).item()
+
+    return probabilities, predicted_class  # Return probabilities along with predicted class
+
+# Streamlit app
+def main():
+    st.title("Homophobia Detector")
+
+    # Input text area and button
+    user_input = st.text_area('Enter Text to Analyze')
+    button = st.button("Analyze")
+
+    if user_input and button:
+        probabilities, prediction = predict(user_input)
+        
+        # Get the score (probability) for the predicted class
+        score = probabilities[prediction].item()
+        
+        st.write("Score: ", score)
+        st.write("It's giving... ", d[prediction])
+
+if __name__ == "__main__":
+    main()
