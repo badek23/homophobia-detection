@@ -50,7 +50,7 @@ def main():
 
         if user_input and button:
             logits, prediction, score = predict(user_input)
-            st.write(f"It's giving... **{d[prediction]}** There is a {round(score*100,2)}% change that that statement was {d[prediction]}")
+            st.write(f"It's giving... **{d[prediction]}** There is a {round(score*100,2)}% chance that that statement was {d[prediction]}")
 
             if d[prediction] == "not homophobic.":
                 st.write(":balloon::balloon::rainbow-flag::rainbow-flag::innocent::innocent::face_with_cowboy_hat::face_with_cowboy_hat:")
