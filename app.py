@@ -1,6 +1,6 @@
 import streamlit as st
-import numpy as np
-from transformers import RobertaTokenizer, RobertaForSequenceClassification
+import numpy 
+from transformers import RobertaTokenizer, RobertaForSequenceClassification, pipeline
 import torch
 
 @st.cache_resource
@@ -13,8 +13,8 @@ tokenizer, model = get_model()
 
 # Define labels dictionary
 d = {
-    1: 'Homophobic',
-    0: 'Not Homophobic'
+    1: 'homophobic.',
+    0: 'not homophobic.'
 }
 
 # Function to predict using the model
@@ -34,16 +34,27 @@ def predict(input_text):
 
 # Streamlit app
 def main():
-    st.title("Homophobia Detector")
+    
+    st.title("Anti-Gaydar")
 
-    # Input text area and button
-    user_input = st.text_area('Enter Text to Analyze')
-    button = st.button("Analyze")
+    with st.container(border=True):
 
-    if user_input and button:
-        logits, prediction = predict(user_input)
-        st.write("Logits: ", logits)
-        st.write("It's giving... ", d[prediction])
+        # Input text area and button
+        user_input = st.text_area('Paste the Tweet here to analyze:')
+        button = st.button("Analyze")
+
+        classifier = pipeline("text-classification", model=model, tokenizer=tokenizer)
+
+        if user_input and button:
+            logits, prediction = predict(user_input)
+            likelihood = classifier(user_input)
+            score = likelihood[0]["score"]
+            st.write(f"It's giving... **{d[prediction]}** There is a {round(score*100,2)}% change that that statement was {d[prediction]}")
+
+            if d[prediction] == "not homophobic.":
+                st.write(":balloon::balloon::rainbow-flag::rainbow-flag::innocent::innocent::face_with_cowboy_hat::face_with_cowboy_hat:")
+            elif d[prediction] == "homophobic.": 
+                st.write(":thumbsdown::thumbsdown::japanese_ogre::japanese_ogre::broken_heart::broken_heart::disappointed::disappointed:")
 
 if __name__ == "__main__":
     main()
